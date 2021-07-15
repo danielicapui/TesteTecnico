@@ -1,59 +1,141 @@
-import sys,os,glob,shutil
-def saida():
-    print("Necessidade de Transferência Armazém para CO\nProduto	QtCO	QtMin	QtVendas	Estq.após	Necess.	Transf. de\n\nVendas			Arm p/ CO")
+import sys
+import os
+
+
 def handle_args(args):
-    return args.replace("..",".")
+    return args.replace("..", ".")
+
+
 def handle_file(file):
     return os.path.dirname(file)
+
+
 def handle_path(txt):
     return os.path.abspath(txt)
+
+
 def toArray(arquivo):
-    lista=[]
+    lista = []
     for linha in arquivo:
-        valor=linha.split(";")
-        x=len(valor)-1
+        valor = linha.split(";")
+        x = len(valor)-1
         if "\n" in valor[x]:
-            valor[x]=valor[x].replace("\n","")
+            valor[x] = valor[x].replace("\n", "")
         lista.append(valor)
     return lista
+
+
 def vendasCanais(sales):
-    canal={1:0,2:0,3:0,4:0}
+    canal = {1: 0, 2: 0, 3: 0, 4: 0}
     for dado in sales:
-        if dado[2]=="100" or dado[2]=="102":
-            num=int(dado[3])
-            canal[num]=canal.get(num)+int(dado[1])
+        if dado[2] == "100" or dado[2] == "102":
+            num = int(dado[3])
+            canal[num] = canal.get(num)+int(dado[1])
     return canal
+
+
 def mostrarCanais(canal):
     print("Quantidades de Vendas por canal\n")
     print("1 - Representantes		{}".format(canal.get(1)))
     print("2 - Website			{}".format(canal.get(2)))
     print("3 - App móvel Android		{}".format(canal.get(3)))
     print("4 - App móvel iPhone		{}".format(canal.get(4)))
-def salvarCanais(canal,file):
-    filename=handle_file(file)+"/TOTCANAIS.txt"
-    arquivo=open(filename,"w")
+
+
+def salvarCanais(canal, file):
+    name = handle_file(file)
+    filename = name+"/TOTCANAIS.txt"
+    arquivo = open(filename, "w")
     arquivo.write("Quantidades de Vendas por canal\n\n")
     arquivo.write("1 - Representantes		{}\n".format(canal.get(1)))
     arquivo.write("2 - Website			{}\n".format(canal.get(2)))
     arquivo.write("3 - App móvel Android		{}\n".format(canal.get(3)))
     arquivo.write("4 - App móvel iPhone		{}\n".format(canal.get(4)))
     arquivo.close()
-    return True
+    return name
+
+
 def loadData(file):
-    arquivo=open(file,"r")
-    data=toArray(arquivo)
+    arquivo = open(file, "r")
+    data = toArray(arquivo)
     arquivo.close()
     return data
-def main(file,file1):
-    products=loadData(file1)
-    sales=loadData(file)
-    canal=vendasCanais(sales)
-    mostrarCanais(canal)
-    salvarCanais(canal,file)
+
+
+def isProduct(cod, products):
+    for i in products:
+        if i[0] == cod:
+            return True
+    return False
+
+
+def searchError(products, sales, name):
+    filename = name+"/DIVERGENCIAS.txt"
+    arquivo = open(filename, "w")
+    linha = 1
+    for item in sales:
+        if not isProduct(item[0], products) and int(item[2]) not in [135, 190, 999]:
+            arquivo.write(
+                "Linha {} – Código de Produto não encontrado {}\n".format(linha, item[0]))
+        if int(item[2]) == 135:
+            arquivo.write("Linha {} – Venda cancelada\n".format(linha))
+        if int(item[2]) == 190:
+            arquivo.write("Linha {} – Venda não finalizada\n".format(linha))
+        if int(item[2]) == 999:
+            arquivo.write(
+                "Linha {} – Erro desconhecido. Acionar equipe de TI\n".format(linha))
+        if linha != len(sales):
+            linha += 1
+    arquivo.close()
+    return True
+
+
+def calcSales(cod, sales):
+    vendas = 0
+    for item in sales:
+        if item[0] == cod and int(item[2]) in [102, 100]:
+            vendas += int(item[1])
+    return vendas
+
+
+def vendasProjeto(products, sales, name):
+    filename = name+"/transfere.txt"
+    arquivo = open(filename, "w")
+    arquivo.write("Necessidade de Transferência Armazém para CO\n\n")
+    arquivo.write("Produto	QtCO	QtMin	QtVendas	Estq.após	Necess.	Transf. de\n")
+    arquivo.write("					Vendas			Arm p/ CO\n")
+    for item in products:
+        vendidos = calcSales(item[0], sales)
+        estoque = int(item[1])-vendidos
+        transf = 0
+        if estoque < int(item[2]):
+            reposicao = int(item[2])-estoque
+            if reposicao > 1 and reposicao < 10:
+                transf = 10
+            else:
+                transf = reposicao
+        else:
+            reposicao = 0
+        arquivo.write("{}	{}	{}	{}		{}		{}		{}\n".format(
+            item[0], item[1], item[2], vendidos, estoque, reposicao, transf))
+    arquivo.close()
+    return True
+
+
+def main(file, file1):
+    products = loadData(file1)
+    sales = loadData(file)
+    canal = vendasCanais(sales)
+    # mostrarCanais(canal)
+    name = salvarCanais(canal, file)
+    searchError(products, sales, name)
+    vendasProjeto(products, sales, name)
     return 0
-if __name__=="__main__":
-    txt=handle_args(sys.argv[1])
-    txt1=handle_args(sys.argv[2])
-    file=handle_path(txt)
-    file1=handle_path(txt1)
-    main(file,file1)
+
+
+if __name__ == "__main__":
+    txt = handle_args(sys.argv[1])
+    txt1 = handle_args(sys.argv[2])
+    file = handle_path(txt)
+    file1 = handle_path(txt1)
+    main(file, file1)
