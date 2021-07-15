@@ -13,6 +13,8 @@ def handle_file(file):
 def handle_path(txt):
     return os.path.abspath(txt)
 
+# função para formatar os aquivos
+
 
 def toArray(arquivo):
     lista = []
@@ -24,6 +26,8 @@ def toArray(arquivo):
         lista.append(valor)
     return lista
 
+# Função para calcular os meios
+
 
 def vendasCanais(sales):
     canal = {1: 0, 2: 0, 3: 0, 4: 0}
@@ -33,6 +37,8 @@ def vendasCanais(sales):
             canal[num] = canal.get(num)+int(dado[1])
     return canal
 
+# Função para mostrar meios
+
 
 def mostrarCanais(canal):
     print("Quantidades de Vendas por canal\n")
@@ -40,6 +46,8 @@ def mostrarCanais(canal):
     print("2 - Website			{}".format(canal.get(2)))
     print("3 - App móvel Android		{}".format(canal.get(3)))
     print("4 - App móvel iPhone		{}".format(canal.get(4)))
+
+# função para salvar os canais
 
 
 def salvarCanais(canal, file):
@@ -54,6 +62,8 @@ def salvarCanais(canal, file):
     arquivo.close()
     return name
 
+# carrega e já transforma arquivo
+
 
 def loadData(file):
     arquivo = open(file, "r")
@@ -61,12 +71,16 @@ def loadData(file):
     arquivo.close()
     return data
 
+# verifica se tem o produto na lista
+
 
 def isProduct(cod, products):
     for i in products:
         if i[0] == cod:
             return True
     return False
+
+# procura por divergencias
 
 
 def searchError(products, sales, name):
@@ -89,6 +103,8 @@ def searchError(products, sales, name):
     arquivo.close()
     return True
 
+# calcular as vendas
+
 
 def calcSales(cod, sales):
     vendas = 0
@@ -96,6 +112,8 @@ def calcSales(cod, sales):
         if item[0] == cod and int(item[2]) in [102, 100]:
             vendas += int(item[1])
     return vendas
+
+# calcula as necessidades e salvar no transfere
 
 
 def vendasProjeto(products, sales, name):
