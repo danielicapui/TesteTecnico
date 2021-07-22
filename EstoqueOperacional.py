@@ -3,14 +3,21 @@ import os
 
 
 def handle_args(args):
-    return args.replace("..", ".")
-
+    #aqui pode usar também isso
+    #return args.replace("..", ".")
+    ##caso o nome da pasta tenha pontos achei melhor colocar assim
+    if args[0]=="." and args[1]==".":
+        return args[1:]
+    else:
+        return args
 
 def handle_file(file):
+    
     return os.path.dirname(file)
 
 
 def handle_path(txt):
+    #perceba que aqui usa absoluto path logo vai ficar nas mesmas localização do exe. 
     return os.path.abspath(txt)
 
 # função para formatar os aquivos
@@ -152,6 +159,9 @@ def main(file, file1):
 
 
 if __name__ == "__main__":
+    #Deixei assim porque pede para ler da forma arquivo.exe "file1" "file2"
+    #Como tem dois  '..' inves de somente um '.' no windows tive que substituir.
+    #Se o nome do diretorio tiver dois '..' irá da erro de exception FileNotfound porque irá substituir os '..' para somente '.'
     txt = handle_args(sys.argv[1])
     txt1 = handle_args(sys.argv[2])
     file = handle_path(txt)
